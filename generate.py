@@ -1,6 +1,7 @@
 import argparse
 import torch
-from model import Decoder_Only_Transformer, generate
+import time
+from model import Decoder_Only_Transformer, generate_stream
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--ckpt", default="lorca.pt")
