@@ -122,19 +122,19 @@ class Decoder_Only_Transformer(torch.nn.Module):
         return logits, loss
 
 
-@torch.no_grad()
-def generate(model, idx, max_new_tokens, temperature=1.0, top_k=None):
-    model.eval()
-    block_size = model.pos_encoding.shape[0]
 
+@torch.no_grad()
+def generate_stream(modelo, idx, max_new_tokens, temperature=1.0, top_k=None):
+    modelo.eval()
+    block_size = modelo.pos_encoding.shape[0]
     for _ in range(max_new_tokens):
         idx_cond = idx[:, -block_size:]
-        logits, _ = model(idx_cond)
+        logits, _ = modelo(idx_cond)
         logits = logits[:, -1, :] / temperature
         if top_k is not None:
             v, _ = torch.topk(logits, top_k)
             logits[logits < v[:, [-1]]] = float('-inf')
         probs = torch.softmax(logits, dim=-1)
-        next_tok = torch.multinomial(probs, num_samples=1)  # (B, 1)
+        next_tok = torch.multinomial(probs, num_samples=1)
         idx = torch.cat([idx, next_tok], dim=1)
-    return idx
+        yield next_tok.item()                 
